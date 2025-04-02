@@ -3,6 +3,15 @@ import cv2
 import cvzone
 import math
 from sort import *
+points = []
+def click(event, x, y, flags, param):
+    global points
+    if event == cv2.EVENT_LBUTTONDOWN:
+        points.append((x,y))
+    elif event == cv2.EVENT_RBUTTONDOWN:
+        points = []
+cv2.namedWindow("Image")
+cv2.setMouseCallback("Image", click)
 # cap = cv2.VideoCapture(0)
 cap = cv2.VideoCapture("../videos/cars.mp4")
 cap.set(3, 1280)
@@ -32,6 +41,12 @@ while True:
     # results = model(img, stream=True)
     img = cvzone.overlayPNG(img, imgGraphic, (0, 0))
     results = model(imRegion, stream=True)
+    totalPoint = len(points)
+    for i in range(totalPoint):
+        cv2.circle(img, points[i],2, (0,255,0),-1)
+        if totalPoint > 2:
+            cv2.line(img, points[i % totalPoint], points[(i + 1) % totalPoint], (0, 255, 0), 2)
+
 
     detections = np.empty((0,5))
     for r in results:
