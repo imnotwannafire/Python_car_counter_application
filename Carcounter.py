@@ -4,12 +4,37 @@ import cvzone
 import math
 from sort import *
 points = []
+dragging = False
+selected_point = None
+removing = False
+def find_nearest_point(x, y, threshold=10):
+    """Tìm điểm gần nhất với tọa độ (x, y) trong danh sách points"""
+    for i, (px, py) in enumerate(points):
+        if abs(px - x) < threshold and abs(py - y) < threshold:
+            return i
+    return None
 def click(event, x, y, flags, param):
-    global points
+    global points, dragging, selected_point, removing
     if event == cv2.EVENT_LBUTTONDOWN:
-        points.append((x,y))
+        selected_point = find_nearest_point(x, y)
+        if selected_point is None:
+            points.append((x,y))
+        else:
+            dragging = True
+    elif event == cv2.EVENT_MOUSEMOVE:
+        if dragging and selected_point is not None:
+            points[selected_point] = (x, y)
+    elif event == cv2.EVENT_LBUTTONUP:
+        dragging = False
+        selected_point = None
     elif event == cv2.EVENT_RBUTTONDOWN:
-        points = []
+        selected_point = find_nearest_point(x, y)
+        if selected_point is not None:
+            removing = True
+    elif event == cv2.EVENT_RBUTTONUP:
+        if removing and selected_point is not None:
+            del points[selected_point]
+
 cv2.namedWindow("Image")
 cv2.setMouseCallback("Image", click)
 # cap = cv2.VideoCapture(0)
@@ -42,6 +67,7 @@ while True:
     img = cvzone.overlayPNG(img, imgGraphic, (0, 0))
     results = model(imRegion, stream=True)
     totalPoint = len(points)
+
     for i in range(totalPoint):
         cv2.circle(img, points[i],2, (0,255,0),-1)
         if totalPoint > 2:
