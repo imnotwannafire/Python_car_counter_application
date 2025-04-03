@@ -68,10 +68,14 @@ while True:
     results = model(imRegion, stream=True)
     totalPoint = len(points)
 
+    if totalPoint > 2:
+        pts = np.array(points, np.int32).reshape((-1, 1, 2))
+        cv2.fillPoly(img, [pts], (0, 255, 0))
     for i in range(totalPoint):
         cv2.circle(img, points[i],2, (0,255,0),-1)
         if totalPoint > 2:
             cv2.line(img, points[i % totalPoint], points[(i + 1) % totalPoint], (0, 255, 0), 2)
+
 
 
     detections = np.empty((0,5))
