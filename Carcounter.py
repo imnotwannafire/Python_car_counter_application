@@ -60,24 +60,23 @@ limits = [230, 400, 673, 400]
 totalCount = []
 while True:
     success, img = cap.read()
-
-    imRegion = cv2.bitwise_and(img, mask)
+    mask_img = np.zeros_like(img, dtype=np.uint8)
     imgGraphic = cv2.imread('graphics.png',cv2.IMREAD_UNCHANGED)
     # results = model(img, stream=True)
-    img = cvzone.overlayPNG(img, imgGraphic, (0, 0))
-    results = model(imRegion, stream=True)
     totalPoint = len(points)
-
     if totalPoint > 2:
         pts = np.array(points, np.int32).reshape((-1, 1, 2))
-        cv2.fillPoly(img, [pts], (0, 255, 0))
+        cv2.fillPoly(mask_img, [pts], (255, 255, 225)) # white polygon
+        pass
     for i in range(totalPoint):
         cv2.circle(img, points[i],2, (0,255,0),-1)
         if totalPoint > 2:
             cv2.line(img, points[i % totalPoint], points[(i + 1) % totalPoint], (0, 255, 0), 2)
-
-
-
+            pass
+        pass
+    imRegion = cv2.bitwise_and(img, mask)
+    imgRegion2 = cv2.bitwise_and(img, mask_img)
+    results = model(imRegion, stream=True)
     detections = np.empty((0,5))
     for r in results:
         boxes = r.boxes
@@ -121,7 +120,7 @@ while True:
     # cvzone.putTextRect(img, f'Count: {len(totalCount)}', (50, 50))
     cv2.putText(img, str(len(totalCount)), (255, 100), cv2.FONT_HERSHEY_PLAIN, 5, color=(50,50,255), thickness=8)
     cv2.imshow("Image", img)
-    # cv2.imshow("Image", imRegion)
+    cv2.imshow("Image2", imgRegion2)
     cv2.waitKey(1)
 
 
