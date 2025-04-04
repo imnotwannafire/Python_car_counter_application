@@ -62,20 +62,20 @@ success, img = cap.read()
 mask = np.zeros_like(img, dtype=np.uint8)
 if success:
     while True:
+        img_mask = img.copy()
         totalPoint = len(points)
         if totalPoint > 2:
             pts = np.array(points, np.int32).reshape((-1, 1, 2))
             cv2.fillPoly(mask, [pts], (255, 255, 225))  # white polygon
-            cv2.fillPoly(img, [pts], (0, 255, 0))
             pass
         for i in range(totalPoint):
-            cv2.circle(img, points[i], 2, (0, 255, 0), -1)
+            cv2.circle(img_mask, points[i], 2, (0, 255, 0), -1)
             if totalPoint > 2:
-                cv2.line(img, points[i % totalPoint], points[(i + 1) % totalPoint], (0, 255, 0), 2)
+                cv2.line(img_mask, points[i % totalPoint], points[(i + 1) % totalPoint], (0, 255, 0), 2)
                 pass
             pass
-        cv2.line(img, (limits[0], limits[1]), (limits[2], limits[3]), (0, 0, 255), 5)
-        cv2.imshow("Image", img)
+        cv2.line(img_mask, (limits[0], limits[1]), (limits[2], limits[3]), (0, 0, 255), 5)
+        cv2.imshow("Image", img_mask)
         key = cv2.waitKey(1) & 0xFF
         if key == ord('b'):
             break
