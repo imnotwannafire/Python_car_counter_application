@@ -53,29 +53,44 @@ classNames = ["person", "bicycle", "car", "motorbike", "aeroplane", "bus", "trai
               "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors",
               "teddy bear", "hair drier", "toothbrush"
               ]
-mask = cv2.imread("mask.png")
-mask = cv2.resize(mask,(1280,720))
-tracker = Sort(max_age=20, min_hits=3, iou_threshold=0.3)
+# mask = cv2.imread("mask.png")
+# mask = cv2.resize(mask,(1280,720))
+tracker = Sort(max_age=10, min_hits=3, iou_threshold=0.3)
 limits = [230, 400, 673, 400]
 totalCount = []
-while True:
+success, img = cap.read()
+mask = np.zeros_like(img, dtype=np.uint8)
+if success:
+    while True:
+        totalPoint = len(points)
+        if totalPoint > 2:
+            pts = np.array(points, np.int32).reshape((-1, 1, 2))
+            cv2.fillPoly(mask, [pts], (255, 255, 225))  # white polygon
+            cv2.fillPoly(img, [pts], (0, 255, 0))
+            pass
+        for i in range(totalPoint):
+            cv2.circle(img, points[i], 2, (0, 255, 0), -1)
+            if totalPoint > 2:
+                cv2.line(img, points[i % totalPoint], points[(i + 1) % totalPoint], (0, 255, 0), 2)
+                pass
+            pass
+        cv2.line(img, (limits[0], limits[1]), (limits[2], limits[3]), (0, 0, 255), 5)
+        cv2.imshow("Image", img)
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord('b'):
+            break
+
+while cap.isOpened():
     success, img = cap.read()
-    mask_img = np.zeros_like(img, dtype=np.uint8)
     imgGraphic = cv2.imread('graphics.png',cv2.IMREAD_UNCHANGED)
-    # results = model(img, stream=True)
-    totalPoint = len(points)
-    if totalPoint > 2:
-        pts = np.array(points, np.int32).reshape((-1, 1, 2))
-        cv2.fillPoly(mask_img, [pts], (255, 255, 225)) # white polygon
-        pass
     for i in range(totalPoint):
-        cv2.circle(img, points[i],2, (0,255,0),-1)
+        cv2.circle(img, points[i], 2, (0, 255, 0), -1)
         if totalPoint > 2:
             cv2.line(img, points[i % totalPoint], points[(i + 1) % totalPoint], (0, 255, 0), 2)
             pass
         pass
     imRegion = cv2.bitwise_and(img, mask)
-    imgRegion2 = cv2.bitwise_and(img, mask_img)
+    img = cvzone.overlayPNG(img, imgGraphic, (0, 0))
     results = model(imRegion, stream=True)
     detections = np.empty((0,5))
     for r in results:
@@ -85,11 +100,8 @@ while True:
             x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
             # x1, y1, w, h = box.xywh[0]
             # x1, y1, w, h = int(x1), int(y1), int(w), int(h)
-            # print(x1, y1, x2, y2)
             w,h = x2-x1, y2-y1
             bbox = int(x1), int(y1), int(w), int(h)
-            # cv2.rectangle(img, (x1, y1), (x2,y2), (255, 0, 255),3)
-
             # confident
             conf = math.ceil((box.conf[0]*100))/100
             # class
@@ -97,9 +109,6 @@ while True:
             currentClass = classNames[int(cls)]
             if currentClass == 'car' or currentClass == 'truck' or currentClass == 'bus' or currentClass == 'motorbike'\
                 and conf>0.3:
-                # cvzone.putTextRect(img, f'{currentClass} {conf}', (max(0,x1), max(0, y1)), scale=0.7,
-                #                    thickness=1, offset=5)
-                # cvzone.cornerRect(img, bbox, l=8)
                 currentArray = np.array([x1, y1, x2, y2, conf])
                 detections = np.vstack((detections,currentArray))
     resultTrackers = tracker.update(detections)
@@ -120,7 +129,8 @@ while True:
     # cvzone.putTextRect(img, f'Count: {len(totalCount)}', (50, 50))
     cv2.putText(img, str(len(totalCount)), (255, 100), cv2.FONT_HERSHEY_PLAIN, 5, color=(50,50,255), thickness=8)
     cv2.imshow("Image", img)
-    cv2.imshow("Image2", imgRegion2)
     cv2.waitKey(1)
+cap.release()
+cv2.destroyAllWindows()
 
 
