@@ -8,6 +8,8 @@ This application allows user to set the detected zone before running video strea
 - To install necessary library  
 `pip install -r requirements.txt`
 ## Run
+- Replace your video file name in line 41 of carcounter.py file with your video path.
+- Run command on console
 `python3 Carcounter.py`
 ## Use app
 - To draw detection zone on image, use left mouse. 
